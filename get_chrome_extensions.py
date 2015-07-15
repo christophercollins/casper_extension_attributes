@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 ##	Script:		get_chrome_extensions.py
 ##	Author:		Christopher Collins (christophercollins@livenation.com)
