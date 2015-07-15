@@ -45,5 +45,9 @@ for (dirpath, dirnames, filenames) in os.walk(userchromepath):
                         if manifest.get(key):
                             extension_name = manifest.get(key).get('message')
                             installed_extensions.append(extension_name)
+                        else:
+                            if manifest.get(key.lower()):
+                                extension_name = manifest.get(key.lower()).get('message')
+                                installed_extensions.append(extension_name)
 
 print "<result>{}</result>".format(', '.join(sorted(list(set(installed_extensions)))))
