@@ -15,16 +15,35 @@ from Foundation import CFPreferencesCopyAppValue
 lastloggedinuser = CFPreferencesCopyAppValue('lastUserName', 'com.apple.loginwindow')
 userchromepath = '/Users/' + lastloggedinuser + '/Library/Application Support/Google/Chrome/'
 
-#List of extension names that can be ignored and not reported. Can be edited if needed
-ignored_extensions = ['__MSG_CHROME_EXT_SHORT_NAME__', '__MSG_APP_NAME__', "__MSG_appName__"]
+#Initialize a dictionary to hold the variable names extension developers used if developers localized their extension
+internationalized_extensions = {}
+
+#Initialize a directory to hold the names of the installed extensions
 installed_extensions = []
 
+#walk the chrome application support folder
 for (dirpath, dirnames, filenames) in os.walk(userchromepath):
+
+    #Test to see if file is a manifest.json file and then check its name if it is a placeholder name for a localization file (has __MSG)
+    #If it is a normal name, then add it to the final list. If its not, add it to the internationalized_extensions dictionary to match against a localized messages.json file
     for file in filenames:
-        if ("Extensions" in dirpath  and "manifest.json" in file):
+        if ("Extensions" in dirpath and "manifest.json" in file):
             manifest = json.load(open(os.path.join(dirpath, file)))
             extension_name = manifest.get('name')
-            if extension_name not in ignored_extensions:
+            name = extension_name
+            if '__MSG_'not in extension_name:
                 installed_extensions.append(extension_name)
+            else:
+                extension_name = extension_name[6:-2]
+                if extension_name not in internationalized_extensions:
+                    internationalized_extensions[extension_name] = extension_name
+        else:
+            if (("Extensions" and "locales/en" in dirpath) and "messages.json" in file):
+                manifest = json.load(open(os.path.join(dirpath, file)))
+                if manifest:
+                    for key in internationalized_extensions.keys():
+                        if manifest.get(key):
+                            extension_name = manifest.get(key).get('message')
+                            installed_extensions.append(extension_name)
 
-print "<result>{}</result>".format(', '.join(installed_extensions))
+print "<result>{}</result>".format(', '.join(sorted(list(set(installed_extensions)))))
