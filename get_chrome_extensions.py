@@ -1,31 +1,38 @@
 #!/usr/bin/python
 
-##	Script:		get_chrome_extensions.py
-##	Author:		Christopher Collins (christophercollins@livenation.com)
-##	Last Change:	2015-07-14
+#  Script:     get_chrome_extensions.py
+#  Author:     Christopher Collins (christophercollins@livenation.com)
+#  Last Change:    2015-07-14
 ###########################################
-##Description: This script searches the last logged in user's installed extensions and submits it to Casper during an inventory report.
+# Description: This script searches the last logged in user's installed
+# extension and submits it to Casper during an inventory report.
 ###########################################
 
 import os
 import json
 from Foundation import CFPreferencesCopyAppValue
 
-#Get name of last logged in user so the extension attribute will report information for the user even if they aren't logged in"
-lastloggedinuser = CFPreferencesCopyAppValue('lastUserName', 'com.apple.loginwindow')
-userchromepath = '/Users/' + lastloggedinuser + '/Library/Application Support/Google/Chrome/'
+# Get name of last logged in user so the extension attribute will report
+# information for the user even if they aren't logged in"
+lastUser = CFPreferencesCopyAppValue('lastUserName', 'com.apple.loginwindow')
+chromeSupportPath = '/Users/' + lastUser + \
+                    '/Library/Application Support/Google/Chrome/'
 
-#Initialize a dictionary to hold the variable names extension developers used if developers localized their extension
+# Initialize a dictionary to hold the variable names extension developers
+# used if developers localized their extension
 internationalized_extensions = {}
 
-#Initialize a directory to hold the names of the installed extensions
+# Initialize a directory to hold the names of the installed extensions
 installed_extensions = []
 
-#walk the chrome application support folder
-for (dirpath, dirnames, filenames) in os.walk(userchromepath):
+# walk the chrome application support folder
+for (dirpath, dirnames, filenames) in os.walk(chromeSupportPath):
 
-    #Test to see if file is a manifest.json file and then check its name if it is a placeholder name for a localization file (has __MSG)
-    #If it is a normal name, then add it to the final list. If its not, add it to the internationalized_extensions dictionary to match against a localized messages.json file
+    # Test to see if file is a manifest.json file and then check its name
+    # If it is a placeholder name for a localization file (has __MSG).
+    # If it is a normal name, then add it to the final list. If its not add it
+    # to the internationalized_extensions dictionary to match
+    # against a localized messages.json file
     for file in filenames:
         if ("Extensions" in dirpath and "manifest.json" in file):
             manifest = json.load(open(os.path.join(dirpath, file)))
@@ -50,4 +57,4 @@ for (dirpath, dirnames, filenames) in os.walk(userchromepath):
                                 extension_name = manifest.get(key.lower()).get('message')
                                 installed_extensions.append(extension_name)
 
-print "<result>{}</result>".format(', '.join(sorted(list(set(installed_extensions)))))
+print "<result>{}</result>".format(', '.join(sorted(list(set(installed_extensions)))).encode('utf-8'))
